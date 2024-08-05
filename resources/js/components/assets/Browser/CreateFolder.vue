@@ -52,6 +52,8 @@ export default {
         },
 
         submit() {
+            this.directory = this.sanitizeDirectory(this.directory);
+
             const url = cp_url(`asset-containers/${this.container.id}/folders`);
             const payload = {
                 path: this.path,
@@ -75,6 +77,14 @@ export default {
                 this.saving = false;
             } else {
                 this.$toast.error(__('Something went wrong'));
+            }
+        },
+
+        sanitizeDirectory(directory) {
+            if (Statamic.$config.get('lowercaseAssets')) {
+                return directory.replace(/[\s]+/g, '-').toLowerCase();
+            } else {
+                return directory.replace(/[\s]+/g, '-');
             }
         }
 
