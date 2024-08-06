@@ -52,8 +52,6 @@ export default {
         },
 
         submit() {
-            this.directory = this.sanitizeDirectory(this.directory);
-
             const url = cp_url(`asset-containers/${this.container.id}/folders`);
             const payload = {
                 path: this.path,
@@ -78,10 +76,6 @@ export default {
             } else {
                 this.$toast.error(__('Something went wrong'));
             }
-        },
-
-        sanitizeDirectory(directory) {
-            return directory.replace(/[\s]+/g, '-');
         }
 
     },

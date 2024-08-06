@@ -1,0 +1,16 @@
+<?php
+
+namespace Statamic\Rules;
+
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
+
+class AllowedFolder implements ValidationRule
+{
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+        if (! preg_match('/\A[ \pL\pM\pN_-]+\z/u', $value)) {
+            $fail('statamic::validation.alpha_dash')->translate();
+        }
+    }
+}
