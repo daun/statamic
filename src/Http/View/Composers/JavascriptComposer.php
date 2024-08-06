@@ -68,7 +68,6 @@ class JavascriptComposer
             'sites' => $this->sites(),
             'selectedSite' => Site::selected()->handle(),
             'preloadableFieldtypes' => FieldtypeRepository::preloadable()->keys(),
-            'lowercaseAssets' => config('statamic.assets.lowercase'),
             'livePreview' => config('statamic.live_preview'),
             'permissions' => $this->permissions($user),
             'hasLicenseBanner' => $licenses->invalid() || $licenses->requestFailed(),

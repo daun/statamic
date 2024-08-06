@@ -81,11 +81,7 @@ export default {
         },
 
         sanitizeDirectory(directory) {
-            if (Statamic.$config.get('lowercaseAssets')) {
-                return directory.replace(/[\s]+/g, '-').toLowerCase();
-            } else {
-                return directory.replace(/[\s]+/g, '-');
-            }
+            return directory.replace(/[\s]+/g, '-');
         }
 
     },
