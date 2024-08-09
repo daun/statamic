@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import vSelect from 'vue-select'
 import AssetManager from '../components/assets/AssetManager.vue';
+import AssetEditor from '../components/assets/Editor/Editor.vue';
 import Browser from '../components/assets/Browser/Browser.vue';
 import UpdatesBadge from '../components/UpdatesBadge.vue';
 import Container from '../components/publish/Container.vue';
@@ -67,6 +68,7 @@ Vue.component('v-select', vSelect)
 // Core
 Vue.component('asset-manager', AssetManager);
 Vue.component('asset-browser', Browser);
+Vue.component('asset-editor', AssetEditor);
 Vue.component('updates-badge', UpdatesBadge);
 
 // Publish
