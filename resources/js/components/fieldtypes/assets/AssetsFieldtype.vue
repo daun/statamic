@@ -83,7 +83,7 @@
                         </div>
                     </sortable-list>
 
-                    <div class="asset-table-listing" v-if="displayMode === 'list'">
+                    <div class="asset-table-listing" v-else-if="displayMode === 'list'">
                         <slot name="prepend-list"></slot>
                         <table class="table-fixed">
                             <sortable-list
@@ -112,6 +112,9 @@
                             </sortable-list>
                         </table>
                     </div>
+
+                    <slot :name="displayMode" v-else v-bind="{ config, assets, isReadOnly, showSetAlt, assetUpdated, assetRemoved, idChanged }" />
+
                 </template>
             </div>
         </uploader>
