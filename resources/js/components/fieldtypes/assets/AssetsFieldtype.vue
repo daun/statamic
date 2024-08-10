@@ -113,7 +113,7 @@
                         </table>
                     </div>
 
-                    <slot :name="displayMode" v-else v-bind="{ config, assets, isReadOnly, showSetAlt, assetUpdated, assetRemoved, idChanged }" />
+                    <slot :name="displayMode" v-else v-bind="{ assets, showSetAlt, assetUpdated, assetRemoved, idChanged }" />
 
                 </template>
             </div>
