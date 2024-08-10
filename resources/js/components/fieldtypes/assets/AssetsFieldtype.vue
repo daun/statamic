@@ -179,8 +179,8 @@ export default {
 
 
     props: {
-        assetTileComponent: {  type: String, default: 'asset-tile' },
-        assetRowComponent: {  type: String, default: 'asset-row' },
+        assetTileComponent: { type: [String, Object], default: 'asset-tile' },
+        assetRowComponent: { type: [String, Object], default: 'asset-row' },
     },
 
 
