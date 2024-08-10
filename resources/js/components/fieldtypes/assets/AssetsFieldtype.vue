@@ -68,7 +68,7 @@
                         append-to="body"
                     >
                         <div class="asset-grid-listing border dark:border-dark-900 rounded overflow-hidden rounded-t-none" ref="assets">
-                            <slot name="prepend"></slot>
+                            <slot name="prepend-grid"></slot>
                             <asset-tile :is="assetTileComponent"
                                 v-for="asset in assets"
                                 :key="asset.id"
@@ -84,7 +84,7 @@
                     </sortable-list>
 
                     <div class="asset-table-listing" v-if="displayMode === 'list'">
-                        <slot name="prepend"></slot>
+                        <slot name="prepend-list"></slot>
                         <table class="table-fixed">
                             <sortable-list
                                 v-model="assets"
