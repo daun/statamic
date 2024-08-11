@@ -22,7 +22,7 @@ class FolderAsset extends JsonResource
                 return [
                     'is_image' => true,
                     'thumbnail' => $this->thumbnailUrl('small'),
-                    'can_be_transparent' => $this->isSvg() || $this->extension() === 'png',
+                    'can_be_transparent' => $this->isSvg() || in_array($this->extension(), ['png', 'gif', 'webp', 'avif']),
                     'alt' => $this->alt,
                 ];
             }),
