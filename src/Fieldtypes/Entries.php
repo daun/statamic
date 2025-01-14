@@ -3,6 +3,7 @@
 namespace Statamic\Fieldtypes;
 
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Str;
 use Statamic\Contracts\Data\Localization;
 use Statamic\Contracts\Entries\Entry as EntryContract;
 use Statamic\CP\Column;
@@ -37,6 +38,7 @@ class Entries extends Relationship
     protected $canCreate = true;
     protected $canSearch = true;
     protected $statusIcons = true;
+    protected $taggable = true;
     protected $formComponent = 'entry-publish-form';
     protected $activeFilterBadges;
 
@@ -392,6 +394,59 @@ class Entries extends Relationship
         return $this->config('max_items') === 1 ? $items->first() : $items;
     }
 
+    public function process($data)
+    {
+        $data = parent::process($data);
+
+        if ($this->usingSingleCollection()) {
+            $collection = $this->getConfiguredCollections()[0];
+
+            $data = collect($data)
+                ->map(fn ($id) => Str::isUuid($id) ? $id : $this->createEntryFromString($id, $collection))
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($this->field->get('max_items') === 1) {
+                return $data[0] ?? null;
+            }
+        }
+
+        return $data;
+    }
+
+    protected function createEntryFromString($string, $collection)
+    {
+        // The parent is the item this entries fieldtype exists on. Most commonly an
+        // entry, but could also be something else, like a taxonomy term.
+        $parent = $this->field->parent();
+
+        $lang = $parent instanceof Localization
+            ? Site::get($parent->locale())->lang()
+            : Site::default()->lang();
+
+        $slug = Str::slug($string, '-', $lang);
+
+        $entry = $entry = Entry::query()
+            ->where('collection', $collection)
+            ->where('slug', $slug)
+            ->first();
+
+        if (! $entry) {
+            $collection = Collection::findByHandle($collection);
+
+            $entry = Entry::make()
+                ->slug($slug)
+                ->blueprint($collection->entryBlueprint())
+                ->collection($collection)
+                ->set('title', $string);
+
+            $entry->save();
+        }
+
+        return $entry->id();
+    }
+
     public function getSelectionFilters()
     {
         return Scope::filters('entries-fieldtype', $this->getSelectionFilterContext());
@@ -410,6 +465,11 @@ class Entries extends Relationship
         return empty($collections = $this->config('collections'))
             ? Collection::handles()->all()
             : $collections;
+    }
+
+    protected function usingSingleCollection()
+    {
+        return count($this->getConfiguredCollections()) === 1;
     }
 
     public function toGqlType()
