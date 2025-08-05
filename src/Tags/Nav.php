@@ -2,6 +2,7 @@
 
 namespace Statamic\Tags;
 
+use Statamic\Contracts\Entries\Entry;
 use Statamic\Contracts\Taxonomies\Taxonomy;
 use Statamic\Facades\Data;
 use Statamic\Facades\Site;
@@ -27,16 +28,34 @@ class Nav extends Structure
             array_shift($segments);
         }
 
-        $crumbs = collect($segments)->map(function () use (&$segments) {
-            $uri = URL::tidy(implode('/', $segments));
-            array_pop($segments);
+        // Assemble crumbs from segments
+        $crumbs = collect()
+            ->range(1, count($segments))
+            ->map(fn ($i) => implode('/', array_slice($segments, 0, $i)))
+            ->map(fn ($uri) => Str::ensureLeft(URL::tidy($uri), '/'))
+            ->mapWithKeys(fn ($uri) => [$uri => Data::findByUri($uri, Site::current()->handle())])
+            ->filter();
 
-            return $uri;
-        })->mapWithKeys(function ($uri) {
-            $uri = Str::ensureLeft($uri, '/');
+        // Add mount entries to crumbs
+        if ($this->params->bool('include_mounts', false)) {
+            $crumbs
+                ->filter(fn ($crumb) => $crumb instanceof Entry)
+                ->map(fn ($crumb) => $crumb->collection()->mount()?->in(Site::current()->handle()))
+                ->filter()
+                ->each(fn ($mount) => $crumbs->put($mount->uri(), $mount));
+        }
 
-            return [$uri => Data::findByUri($uri, Site::current()->handle())];
-        })->filter();
+        // Sort by path depth and filter out non-viewable items
+        $crumbs = $crumbs
+            ->sortKeysUsing(fn ($a, $b) => substr_count($a, '/') <=> substr_count($b, '/'))
+            ->values()
+            ->reject(fn ($crumb) => $crumb instanceof Entry && ! view()->exists($crumb->template()))
+            ->reject(fn ($crumb) => $crumb instanceof Taxonomy && ! view()->exists($crumb->template()))
+            ->map(function ($crumb) {
+                $crumb->setSupplement('is_current', URL::getCurrent() === $crumb->urlWithoutRedirect());
+
+                return $crumb;
+            });
 
         if (! $this->params->bool('reverse', false)) {
             $crumbs = $crumbs->reverse();
@@ -45,14 +64,6 @@ class Nav extends Structure
         if ($this->params->bool('trim', true)) {
             $this->content = trim($this->content);
         }
-
-        $crumbs = $crumbs->values()
-            ->reject(fn ($crumb) => $crumb instanceof Taxonomy && ! view()->exists($crumb->template()))
-            ->map(function ($crumb) {
-                $crumb->setSupplement('is_current', URL::getCurrent() === $crumb->urlWithoutRedirect());
-
-                return $crumb;
-            });
 
         if (! $this->parser) {
             return $crumbs;
