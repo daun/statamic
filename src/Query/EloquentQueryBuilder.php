@@ -160,12 +160,16 @@ abstract class EloquentQueryBuilder implements Builder
             return $this->whereNested($column, $boolean);
         }
 
-        if (strtolower($operator) == 'like') {
+        if ($operator !== null && strtolower($operator) == 'like') {
             $grammar = $this->builder->getConnection()->getQueryGrammar();
             $this->builder->whereRaw('LOWER('.$grammar->wrap($this->column($column)).') LIKE ?', strtolower($value), $boolean);
 
             return $this;
         }
+
+        [$value, $operator] = $this->prepareValueAndOperator(
+            $value, $operator, func_num_args() === 2
+        );
 
         $this->builder->where($this->column($column), $operator, $value, $boolean);
 
@@ -288,7 +292,7 @@ abstract class EloquentQueryBuilder implements Builder
 
     public function whereNotBetween($column, $values, $boolean = 'and')
     {
-        return $this->whereBetween($column, $values, 'or', true);
+        return $this->whereBetween($column, $values, $boolean, true);
     }
 
     public function orWhereNotBetween($column, $values)
@@ -439,6 +443,13 @@ abstract class EloquentQueryBuilder implements Builder
     public function orderBy($column, $direction = 'asc')
     {
         $this->builder->orderBy($this->column($column), $direction);
+
+        return $this;
+    }
+
+    public function orderByDesc($column)
+    {
+        $this->builder->orderBy($this->column($column), 'desc');
 
         return $this;
     }
