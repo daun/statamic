@@ -7,8 +7,10 @@ use PHPUnit\Framework\Attributes\Test;
 use Statamic\Contracts\Entries\QueryBuilder;
 use Statamic\Facades\Antlers;
 use Statamic\Facades\Collection;
+use Statamic\Facades\Config;
 use Statamic\Facades\Entry;
 use Statamic\Facades\Nav;
+use Statamic\Facades\Site;
 use Tests\PreventSavingStacheItemsToDisk;
 use Tests\TestCase;
 
@@ -531,6 +533,61 @@ EOT;
         $this->assertXmlStringEqualsXmlString($expected, (string) Antlers::parse($template, [
             'title' => 'outer title', // to test that cascade the page's data takes precedence over the cascading data.
         ]));
+    }
+
+    #[Test]
+    public function it_renders_breadcrumbs()
+    {
+        Site::setSites([
+            'en' => ['url' => '/', 'locale' => 'en'],
+            'fr' => ['url' => '/fr/', 'locale' => 'fr'],
+        ]);
+
+        Config::set('statamic.system.multisite', Site::hasMultiple());
+
+        $pagesCollection = Collection::make('pages')->routes('{parent_uri}/{slug}')->structureContents(['root' => true])->sites(['en', 'fr'])->save();
+
+        $home = EntryFactory::collection('pages')->id('home')->slug('home')->data(['title' => 'Home'])->create();
+        $page = EntryFactory::collection('pages')->id('page')->slug('page')->data(['title' => 'Page'])->create();
+        $mount = EntryFactory::collection('pages')->id('mount')->slug('mount')->data(['title' => 'Mount'])->create();
+
+        $postsCollection = Collection::make('posts')->routes('/post/{slug}')->mount('mount')->sites(['en', 'fr'])->save();
+        $post = EntryFactory::collection('posts')->id('post')->slug('post')->data(['title' => 'Post'])->create();
+
+        $pagesCollection->structure()->in('en')->tree([
+            ['entry' => 'home', 'url' => '/'],
+            ['entry' => 'page', 'url' => '/page', 'children' => [
+                ['entry' => 'mount', 'url' => '/page/mount'],
+            ]],
+        ])->save();
+
+        // $ids = ['1', '1-1', '1-1-1', '1-1-1-1', '2'];
+
+        // $builder = $this->mock(QueryBuilder::class);
+        // $builder->shouldReceive('whereIn')->with('id', $ids)->andReturnSelf();
+        // $builder->shouldReceive('get')->andReturn(collect([$page_home, $page_content, $page_1_1_1, $page_1_1_1_1, $page_2]));
+        // Entry::shouldReceive('query')->andReturn($builder);
+
+        $template = '{{ nav:breadcrumbs }}{{ title }}{{ unless last }}, {{ /unless }}{{ /nav:breadcrumbs }}';
+
+        $mock = \Mockery::mock(\Statamic\Facades\URL::getFacadeRoot())->makePartial();
+        \Statamic\Facades\URL::swap($mock);
+
+        // $mock->shouldReceive('getCurrent')->once()->andReturn('/');
+        // $result = (string) Antlers::parse($template);
+        // $this->assertEquals('Home', $result);
+
+        $mock->shouldReceive('getCurrent')->once()->andReturn('/page');
+        $result = (string) Antlers::parse($template);
+        $this->assertEquals('Home, Page', $result);
+
+        $mock->shouldReceive('getCurrent')->once()->andReturn('/page/mount');
+        $result = (string) Antlers::parse($template);
+        $this->assertEquals('Home, Page, Mount', $result);
+
+        $mock->shouldReceive('getCurrent')->once()->andReturn('/post/slug');
+        $result = (string) Antlers::parse($template);
+        $this->assertEquals('Home, Post', $result);
     }
 
     private function makeNav($tree)
