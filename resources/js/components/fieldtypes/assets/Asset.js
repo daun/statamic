@@ -1,10 +1,4 @@
-import AssetEditor from '../../assets/Editor/Editor.vue';
-
 export default {
-
-    components: {
-        AssetEditor
-    },
 
     props: {
         asset: Object,
