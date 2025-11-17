@@ -109,6 +109,7 @@
                             style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));"
                         >
                             <asset-tile
+                                :is="assetTileComponent"
                                 v-for="asset in assets"
                                 :key="asset.id"
                                 :asset="asset"
@@ -143,7 +144,7 @@
                             >
                                 <tbody ref="assets">
                                     <component
-                                        is="assetRow"
+                                        is="assetRowComponent"
                                         class="asset-row"
                                         v-for="asset in assets"
                                         :key="asset.id"
@@ -207,6 +208,11 @@ export default {
     },
 
     mixins: [Fieldtype],
+
+    props: {
+        assetTileComponent: { type: [String, Object], default: 'asset-tile' },
+        assetRowComponent: { type: [String, Object], default: 'asset-row' },
+    },
 
     inject: {
         isInBardField: {
