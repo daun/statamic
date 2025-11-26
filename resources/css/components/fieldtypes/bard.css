@@ -270,6 +270,10 @@
             min-height: calc(100vh - 120px);
         }
 
+        .bard-content {
+            @apply bg-transparent;
+        }
+
         .bard-content:not(.bard-set *) > {
             p > code,
             pre code {
@@ -451,7 +455,7 @@
             .tableWrapper &,
             blockquote > .tableWrapper &,
             :is(ol, ul) li > .tableWrapper & {
-                @apply m-0 mb-4 w-full overflow-hidden bg-white text-sm dark:bg-dark-500 border-collapse table-fixed;
+                @apply m-0 mb-4 w-full overflow-hidden text-sm border-collapse table-fixed;
 
                 th {
                     @apply bg-gray-200 font-bold dark:bg-gray-600 text-start;
