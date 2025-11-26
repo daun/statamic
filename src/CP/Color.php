@@ -418,6 +418,7 @@ class Color
             'ui-accent-text' => 'var(--theme-color-ui-accent-bg)',
             'dark-ui-accent-text' => self::Indigo[400],
             'switch-bg' => 'var(--theme-color-ui-accent-bg)',
+            'input-bg' => 'var(--theme-color-content-bg)',
         ])
             ->filter(fn ($color, $name) => str($name)->startsWith('dark-') ? $dark : ! $dark)
             ->all();

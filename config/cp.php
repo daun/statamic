@@ -132,6 +132,9 @@ return [
 
         // 'progress-bar' => Color::Volt,
 
+        // 'input-bg' => Color::White,
+        // 'dark-input-bg' => Color::Zinc[900],
+
         // 'switch-bg' => Color::Green[500],
         // 'dark-switch-bg' => Color::Green[600],
     ],

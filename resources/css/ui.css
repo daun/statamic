@@ -29,6 +29,7 @@
     --color-ui-accent-bg: var(--theme-color-ui-accent-bg);
     --color-ui-accent-text: var(--theme-color-ui-accent-text);
     --color-switch-bg: var(--theme-color-switch-bg);
+    --color-input-bg: var(--theme-color-input-bg);
 
     /* Temp */
     --color-dark-100: #dfe1e5;
