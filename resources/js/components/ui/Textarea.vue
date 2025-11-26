@@ -20,7 +20,7 @@ const props = defineProps({
 
 const classes = cva({
     base: [
-        'w-full block bg-white dark:bg-gray-900 px-3 pt-2.5 pb-3 rounded-lg',
+        'w-full block bg-input-bg px-3 pt-2.5 pb-3 rounded-lg',
         'border border-gray-300 with-contrast:border-gray-500 dark:border-gray-700',
         'text-gray-900 dark:text-gray-300',
         'appearance-none antialiased shadow-ui-sm disabled:shadow-none read-only:border-dashed not-prose'

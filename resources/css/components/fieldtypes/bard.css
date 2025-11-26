@@ -306,7 +306,7 @@
     }
 
     .bard-fieldtype .bard-content {
-        @apply text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg;
+        @apply text-gray-900 dark:text-gray-300 bg-input-bg rounded-lg;
         blockquote,
         ol,
         p,
@@ -532,7 +532,7 @@
     }
 
     .bard-inline-image-container {
-        @apply relative mb-6 whitespace-normal rounded-sm border bg-white dark:border-gray-600 dark:bg-gray-900 hover:cursor-grab;
+        @apply relative mb-6 whitespace-normal rounded-sm bg-input-bg border dark:border-gray-600 hover:cursor-grab;
     }
 }
 
@@ -553,13 +553,3 @@
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
