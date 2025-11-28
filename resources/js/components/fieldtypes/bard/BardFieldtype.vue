@@ -6,7 +6,7 @@
         <div :class="{ 'publish-fields': fullScreenMode }">
             <div :class="fullScreenMode && wrapperClasses">
                 <div
-                    class="bard-fieldtype antialiased with-contrast:border-gray-500 shadow-ui-sm"
+                    class="bard-fieldtype antialiased bg-input-bg with-contrast:border-gray-500 shadow-ui-sm"
                     :class="{ 'bard-fullscreen': fullScreenMode }"
                     ref="container"
                     @dragstart.stop="ignorePageHeader(true)"
@@ -998,4 +998,3 @@ export default {
     }
 }
 </style>
-
