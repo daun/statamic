@@ -82,7 +82,7 @@
                         append-to="body"
                     >
                         <div class="asset-grid-listing border dark:border-dark-900 rounded overflow-hidden" :class="{ 'rounded-t-none': !isReadOnly && (showPicker || uploads.length) }" ref="assets">
-                            <asset-tile
+                            <asset-tile :is="assetTileComponent"
                                 v-for="asset in assets"
                                 :key="asset.id"
                                 :asset="asset"
@@ -96,7 +96,7 @@
                         </div>
                     </sortable-list>
 
-                    <div class="asset-table-listing" v-if="displayMode === 'list'">
+                    <div class="asset-table-listing" v-else-if="displayMode === 'list'">
                         <table class="table-fixed">
                             <sortable-list
                                 v-model="assets"
@@ -108,7 +108,7 @@
                                 :mirror="false"
                             >
                                 <tbody ref="assets">
-                                    <tr is="assetRow"
+                                    <tr :is="assetRowComponent"
                                         class="asset-row"
                                         v-for="asset in assets"
                                         :key="asset.id"
@@ -124,6 +124,9 @@
                             </sortable-list>
                         </table>
                     </div>
+
+                    <slot :name="displayMode" v-else v-bind="{ assets, showSetAlt, assetUpdated, assetRemoved, idChanged }" />
+
                 </template>
             </div>
         </uploader>
@@ -190,6 +193,12 @@ export default {
 
 
     mixins: [Fieldtype],
+
+
+    props: {
+        assetTileComponent: { type: [String, Object], default: 'asset-tile' },
+        assetRowComponent: { type: [String, Object], default: 'asset-row' },
+    },
 
 
     data() {

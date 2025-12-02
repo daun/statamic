@@ -281,7 +281,6 @@
 
 <script>
 import AssetThumbnail from './Thumbnail.vue';
-import AssetEditor from '../Editor/Editor.vue';
 import Breadcrumbs from './Breadcrumbs.vue';
 import CreateFolder from './CreateFolder.vue';
 import HasPagination from '../../data-list/HasPagination';
@@ -300,7 +299,6 @@ export default {
 
     components: {
         AssetThumbnail,
-        AssetEditor,
         Breadcrumbs,
         Uploader,
         Uploads,
