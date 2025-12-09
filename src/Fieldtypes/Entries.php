@@ -28,6 +28,8 @@ use Statamic\Search\Index;
 use Statamic\Search\Result;
 use Statamic\Support\Arr;
 
+use function Statamic\trans as __;
+
 class Entries extends Relationship
 {
     use QueriesFilters;
@@ -95,6 +97,9 @@ class Entries extends Relationship
                         'instructions' => __('statamic::fieldtypes.entries.config.create'),
                         'type' => 'toggle',
                         'default' => true,
+                        'if' => [
+                            'mode' => 'default',
+                        ],
                     ],
                     'collections' => [
                         'display' => __('Collections'),
@@ -179,7 +184,11 @@ class Entries extends Relationship
             $collections = $this->getConfiguredCollections();
         }
 
-        return Collection::findByHandle(Arr::first($collections));
+        $collection = Collection::findByHandle($collectionHandle = Arr::first($collections));
+
+        throw_if(! $collection, new CollectionNotFoundException($collectionHandle));
+
+        return $collection;
     }
 
     public function getSortColumn($request)
@@ -507,6 +516,14 @@ class Entries extends Relationship
     protected function getItemsForPreProcessIndex($values): SupportCollection
     {
         return $this->queryBuilder($values)->whereAnyStatus()->get();
+    }
+
+    public function relationshipQueryBuilder()
+    {
+        $collections = $this->config('collections');
+
+        return Entry::query()
+            ->when($collections, fn ($query) => $query->whereIn('collection', $collections));
     }
 
     public function filter()
