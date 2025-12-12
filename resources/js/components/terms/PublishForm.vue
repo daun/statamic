@@ -64,8 +64,9 @@
             :origin-meta="originMeta"
             :errors="errors"
             :site="site"
-            :localized-fields="localizedFields"
+            v-model:modified-fields="localizedFields"
             :sync-field-confirmation-text="syncFieldConfirmationText"
+            :remember-tab="!isInline"
         >
             <LivePreview
                 :enabled="isPreviewing"
@@ -77,11 +78,8 @@
                 <PublishComponents />
 
                 <PublishTabs>
-                    <template #actions>
-                        <div
-                            class="space-y-6"
-                            v-if="showLivePreviewButton || showVisitUrlButton || showLocalizationSelector"
-                        >
+                    <template v-if="showLivePreviewButton || showVisitUrlButton || showLocalizationSelector" #actions>
+                        <div class="space-y-6">
                             <div class="flex flex-wrap gap-4" v-if="showLivePreviewButton || showVisitUrlButton">
                                 <Button
                                     :text="__('Live Preview')"

@@ -85,6 +85,7 @@
             v-model:modified-fields="localizedFields"
             :track-dirty-state="trackDirtyState"
             :sync-field-confirmation-text="syncFieldConfirmationText"
+            :remember-tab="!isInline"
         >
             <LivePreview
                 :enabled="isPreviewing"
@@ -191,7 +192,7 @@
             </LivePreview>
         </PublishContainer>
 
-        <stack
+        <ui-stack
             name="revision-history"
             v-if="showRevisionHistory"
             @closed="showRevisionHistory = false"
@@ -205,7 +206,7 @@
                 :can-restore-revisions="!readOnly"
                 @closed="close"
             />
-        </stack>
+        </ui-stack>
 
         <publish-actions
             v-if="confirmingPublish"
