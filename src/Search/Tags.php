@@ -19,18 +19,47 @@ class Tags extends BaseTags
 
     protected static $handle = 'search';
 
-    public function results()
+    /**
+     * The {{ search }} tag. Includes results and additional metadata from the search driver.
+     */
+    public function index()
     {
-        if (! $query = $this->params->get('for') ?? request($this->params->get('query', 'q'))) {
+        if (! $this->getSearchQuery()) {
             return $this->parseNoResults();
         }
 
-        $supplementData = $this->params->get('supplement_data', true);
+        $builder = $this->createSearchQueryBuilder();
+        $results = $this->getQueryResults($builder);
 
+        return $this->output($results);
+    }
+
+    /**
+     * The {{ search:results }} tag. Result data only.
+     */
+    public function results()
+    {
+        if (! $this->getSearchQuery()) {
+            return $this->parseNoResults();
+        }
+
+        $builder = $this->createSearchQueryBuilder();
+        $results = $this->getQueryResults($builder);
+
+        return $this->output($results);
+    }
+
+    protected function getSearchQuery(): mixed
+    {
+        return $this->params->get('for') ?? request($this->params->get('query', 'q'));
+    }
+
+    protected function createSearchQueryBuilder()
+    {
         $builder = Search::index($this->params->get('index'))
             ->ensureExists()
-            ->search($query)
-            ->withData($supplementData);
+            ->search($this->getSearchQuery())
+            ->withData($this->params->get('supplement_data', true));
 
         $this->querySite($builder);
         $this->queryStatus($builder);
@@ -38,9 +67,7 @@ class Tags extends BaseTags
         $this->queryScopes($builder);
         $this->queryOrderBys($builder);
 
-        $results = $this->getQueryResults($builder);
-
-        return $this->output($results);
+        return $builder;
     }
 
     protected function queryStatus($query)
