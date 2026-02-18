@@ -16,6 +16,7 @@ abstract class QueryBuilder extends BaseQueryBuilder
     protected $query;
     protected $index;
     protected $withData = true;
+    protected $withMeta = false;
 
     public function __construct(Index $index)
     {
@@ -39,6 +40,20 @@ abstract class QueryBuilder extends BaseQueryBuilder
     public function withoutData()
     {
         $this->withData = false;
+
+        return $this;
+    }
+
+    public function withMeta(bool $with)
+    {
+        $this->withMeta = $with;
+
+        return $this;
+    }
+
+    public function withoutMeta()
+    {
+        $this->withMeta = false;
 
         return $this;
     }
