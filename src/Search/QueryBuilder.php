@@ -2,8 +2,11 @@
 
 namespace Statamic\Search;
 
+use Illuminate\Support\Collection;
+use ReflectionMethod;
 use Statamic\Contracts\Search\Result;
 use Statamic\Data\DataCollection;
+use Statamic\Facades\Search;
 use Statamic\Query\Concerns\FakesQueries;
 use Statamic\Query\IteratorBuilder as BaseQueryBuilder;
 use Statamic\Search\Searchables\Providers;
@@ -14,9 +17,10 @@ abstract class QueryBuilder extends BaseQueryBuilder
     use FakesQueries;
 
     protected $query;
+    protected $response;
     protected $index;
     protected $withData = true;
-    protected $withMeta = false;
+    protected $aggregations;
 
     public function __construct(Index $index)
     {
@@ -44,20 +48,6 @@ abstract class QueryBuilder extends BaseQueryBuilder
         return $this;
     }
 
-    public function withMeta(bool $with)
-    {
-        $this->withMeta = $with;
-
-        return $this;
-    }
-
-    public function withoutMeta()
-    {
-        $this->withMeta = false;
-
-        return $this;
-    }
-
     public function get($columns = ['*'])
     {
         return $this->withFakeQueryLogging(fn () => parent::get($columns));
@@ -65,9 +55,25 @@ abstract class QueryBuilder extends BaseQueryBuilder
 
     public function getBaseItems()
     {
-        $results = $this->getSearchResults($this->query);
+        $this->response = $this->getSearchResponse($this->query);
 
-        return $this->transformResults($results);
+        return $this->transformResults($this->response->getResults());
+    }
+
+    abstract public function getSearchResults($query);
+
+    public function getSearchResponse($query): SearchResponse
+    {
+        // This should be implemented in each search driver
+        // For backwards compatibility, we load the results as usual and wrap them in a search response
+        $results = $this->getSearchResults($query);
+
+        return new SearchResponse(count($results), $results);
+    }
+
+    public function getSearchAggregations(): Collection
+    {
+        return $this->response?->getAggregations() ?? collect();
     }
 
     public function transformResults($results)

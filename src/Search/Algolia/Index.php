@@ -10,6 +10,7 @@ use Statamic\Search\Documents;
 use Statamic\Search\Index as BaseIndex;
 use Statamic\Search\IndexNotFoundException;
 use Statamic\Search\Result;
+use Statamic\Search\SearchResponse;
 use Statamic\Support\Str;
 
 class Index extends BaseIndex
@@ -77,7 +78,7 @@ class Index extends BaseIndex
         return $this;
     }
 
-    public function searchUsingApi($query, $fields = null)
+    public function searchUsingApi($query, $fields = null): SearchResponse
     {
         $arguments = ['query' => $query];
 
@@ -91,11 +92,17 @@ class Index extends BaseIndex
             $this->handleAlgoliaException($e);
         }
 
-        return collect($response['hits'])->map(function ($hit) {
+        $count = count($response['hits']);
+        $total = $response['nbHits'];
+        $aggregations = collect($response)->only(['nbHits', 'nbPages', 'processingTimeMS', 'facets']);
+        $results = collect($response['hits'])->map(function ($hit, $i) use ($count) {
             $hit['reference'] = $hit['objectID'];
+            $hit['search_score'] = $count - $i;
 
             return $hit;
         });
+
+        return new SearchResponse($total, $results, $aggregations);
     }
 
     public function exists()

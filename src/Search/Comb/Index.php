@@ -10,6 +10,7 @@ use Statamic\Search\Documents;
 use Statamic\Search\Index as BaseIndex;
 use Statamic\Search\IndexNotFoundException;
 use Statamic\Search\Result;
+use Statamic\Search\SearchResponse;
 use Statamic\Support\Arr;
 
 class Index extends BaseIndex
@@ -19,7 +20,7 @@ class Index extends BaseIndex
         return (new Query($this))->query($query);
     }
 
-    public function lookup($query)
+    public function lookup($query): SearchResponse
     {
         $data = $this->data()->map(function ($item, $reference) {
             return $item + ['reference' => $reference];
@@ -28,18 +29,23 @@ class Index extends BaseIndex
         $comb = new Comb($data, $this->settings());
 
         try {
-            $results = $comb->lookUp($query)['data'];
+            $response = $comb->lookUp($query);
         } catch (NoResultsFound|NotEnoughCharacters|NoQuery $e) {
-            return collect();
+            return new SearchResponse(0, collect());
         }
 
-        return collect($results)->map(function ($result) {
+        $total = $response['info']['total_results'];
+        $aggregations = collect($response['info']);
+        $results = collect($response['data'])->map(function ($result) {
             $data = $result['data'];
             $data['search_score'] = $result['score'];
             $data['search_snippets'] = $result['snippets'];
 
             return Arr::except($data, '_category');
         });
+
+
+        return new SearchResponse($total, $results, $aggregations);
     }
 
     protected function data()
