@@ -73,16 +73,16 @@ class SearchTest extends TestCase
         $builder = $this->mock(QueryBuilder::class);
         $builder->shouldReceive('ensureExists', 'search', 'withData', 'limit', 'offset', 'where')->andReturnSelf();
         $builder->shouldReceive('get')->andReturn(collect([$entryA, $entryB]));
-        $builder->shouldReceive('getSearchAggregations')->andReturn(['query_time' => 14]);
+        $builder->shouldReceive('getSearchAggregations')->andReturn(['query_time' => 14, 'facets' => ['categories' => ['first' => 1, 'second' => 1]]]);
 
         Search::shouldReceive('index')->with(null)->once()->andReturn($builder);
 
         $this->get('/whatever?q=foo'); // just a way to get a query param into the request(). the url is irrelevant.
 
         $this->assertEquals(
-            'Took 14ms to find: <entry a><entry b>',
+            'Took 14ms to find across 2 categories: <entry a><entry b>',
             $this->tag(
-                '{{ search:aggregate }}Took {{ aggregations:query_time }}ms to find: {{ results }}<{{ title }}>{{ /results }}{{ /search:aggregate }}'
+                '{{ search:aggregate }}Took {{ aggregations:query_time }}ms to find across {{ aggregations:facets:categories | count }} categories: {{ results }}<{{ title }}>{{ /results }}{{ /search:aggregate }}'
             )
         );
     }
