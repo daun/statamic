@@ -44,7 +44,6 @@ class Index extends BaseIndex
             return Arr::except($data, '_category');
         });
 
-
         return new SearchResponse($results, $total, $aggregations);
     }
 

@@ -63,7 +63,6 @@ class SearchTest extends TestCase
         );
     }
 
-
     #[Test]
     public function it_outputs_aggregations()
     {

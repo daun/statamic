@@ -52,7 +52,7 @@ class AlgoliaIndexTest extends TestCase
         $this->assertEquals([
             'nbHits' => 5,
             'nbPages' => 2,
-            'processingTimeMS' => 30
+            'processingTimeMS' => 30,
         ], $response->getAggregations());
     }
 }

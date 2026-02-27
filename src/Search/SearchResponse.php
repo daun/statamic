@@ -10,7 +10,8 @@ class SearchResponse
         protected Collection $results,
         protected int $total,
         protected array $aggregations = [],
-    ) {}
+    ) {
+    }
 
     public function getTotal(): int
     {
