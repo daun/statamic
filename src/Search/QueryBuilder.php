@@ -2,11 +2,8 @@
 
 namespace Statamic\Search;
 
-use Illuminate\Support\Collection;
-use ReflectionMethod;
 use Statamic\Contracts\Search\Result;
 use Statamic\Data\DataCollection;
-use Statamic\Facades\Search;
 use Statamic\Query\Concerns\FakesQueries;
 use Statamic\Query\IteratorBuilder as BaseQueryBuilder;
 use Statamic\Search\Searchables\Providers;
@@ -68,7 +65,7 @@ abstract class QueryBuilder extends BaseQueryBuilder
         // For backwards compatibility, we load the results as usual and wrap them in a search response
         $results = $this->getSearchResults($query);
 
-        return new SearchResponse(count($results), $results);
+        return new SearchResponse($results, count($results));
     }
 
     public function getSearchAggregations(): array

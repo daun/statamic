@@ -31,7 +31,7 @@ class Index extends BaseIndex
         try {
             $response = $comb->lookUp($query);
         } catch (NoResultsFound|NotEnoughCharacters|NoQuery $e) {
-            return new SearchResponse(0, collect());
+            return new SearchResponse(collect(), 0);
         }
 
         $total = $response['info']['total_results'];
@@ -45,7 +45,7 @@ class Index extends BaseIndex
         });
 
 
-        return new SearchResponse($total, $results, $aggregations);
+        return new SearchResponse($results, $total, $aggregations);
     }
 
     protected function data()

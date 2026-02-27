@@ -7,8 +7,8 @@ use Illuminate\Support\Collection;
 class SearchResponse
 {
     public function __construct(
-        protected int $total,
         protected Collection $results,
+        protected int $total,
         protected array $aggregations = [],
     ) {}
 

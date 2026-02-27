@@ -98,11 +98,12 @@ class Index extends BaseIndex
         $results = collect($response['hits'])->map(function ($hit, $i) use ($count) {
             $hit['reference'] = $hit['objectID'];
             $hit['search_score'] = $count - $i;
+            unset($hit['objectID']);
 
             return $hit;
         });
 
-        return new SearchResponse($total, $results, $aggregations);
+        return new SearchResponse($results, $total, $aggregations);
     }
 
     public function exists()
