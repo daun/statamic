@@ -71,9 +71,9 @@ abstract class QueryBuilder extends BaseQueryBuilder
         return new SearchResponse(count($results), $results);
     }
 
-    public function getSearchAggregations(): Collection
+    public function getSearchAggregations(): array
     {
-        return $this->response?->getAggregations() ?? collect();
+        return $this->response?->getAggregations() ?? [];
     }
 
     public function transformResults($results)

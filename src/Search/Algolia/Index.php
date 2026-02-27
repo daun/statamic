@@ -94,7 +94,7 @@ class Index extends BaseIndex
 
         $count = count($response['hits']);
         $total = $response['nbHits'];
-        $aggregations = collect($response)->only(['nbHits', 'nbPages', 'processingTimeMS', 'facets']);
+        $aggregations = Arr::only($response, ['nbHits', 'nbPages', 'processingTimeMS', 'facets']);
         $results = collect($response['hits'])->map(function ($hit, $i) use ($count) {
             $hit['reference'] = $hit['objectID'];
             $hit['search_score'] = $count - $i;

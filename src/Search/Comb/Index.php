@@ -35,7 +35,7 @@ class Index extends BaseIndex
         }
 
         $total = $response['info']['total_results'];
-        $aggregations = collect($response['info']);
+        $aggregations = $response['info'];
         $results = collect($response['data'])->map(function ($result) {
             $data = $result['data'];
             $data['search_score'] = $result['score'];

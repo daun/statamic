@@ -9,7 +9,7 @@ class SearchResponse
     public function __construct(
         protected int $total,
         protected Collection $results,
-        protected Collection $aggregations = collect(),
+        protected array $aggregations = [],
     ) {}
 
     public function getTotal(): int
@@ -22,7 +22,7 @@ class SearchResponse
         return $this->results;
     }
 
-    public function getAggregations(): Collection
+    public function getAggregations(): array
     {
         return $this->aggregations;
     }
