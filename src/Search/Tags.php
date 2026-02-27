@@ -20,21 +20,6 @@ class Tags extends BaseTags
     protected static $handle = 'search';
 
     /**
-     * The {{ search }} tag. Includes results and additional metadata from the search driver.
-     */
-    public function index()
-    {
-        if (! $this->getSearchQuery()) {
-            return $this->parseNoResults();
-        }
-
-        $builder = $this->createSearchQueryBuilder();
-        $results = $this->getQueryResults($builder);
-
-        return $this->output($results);
-    }
-
-    /**
      * The {{ search:results }} tag. Result data only.
      */
     public function results()
@@ -47,6 +32,22 @@ class Tags extends BaseTags
         $results = $this->getQueryResults($builder);
 
         return $this->output($results);
+    }
+
+    /**
+     * The {{ search:aggregate }} tag. Includes results and additional metadata from the search driver.
+     */
+    public function aggregate()
+    {
+        if (! $this->getSearchQuery()) {
+            return $this->parseNoResults(['results' => [], 'aggregations' => []]);
+        }
+
+        $builder = $this->createSearchQueryBuilder();
+        $results = $this->getQueryResults($builder);
+        $aggregations = $builder->getSearchAggregations();
+
+        return ['results' => $results, 'aggregations' => $aggregations];
     }
 
     protected function getSearchQuery(): mixed
