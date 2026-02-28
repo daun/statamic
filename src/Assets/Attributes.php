@@ -30,7 +30,7 @@ class Attributes
             return $this->getAudioAttributes();
         }
 
-        if ($this->asset->isImage()) {
+        if ($this->asset->isImage() || $this->canExtractImageDimensions($this->asset)) {
             return $this->getImageAttributes();
         }
 
@@ -102,5 +102,17 @@ class Attributes
             'height' => $height,
             'duration' => Arr::get($id3, 'playtime_seconds'),
         ];
+    }
+
+    /**
+     * Determine if the asset is an exotic image format that PHP's getimagesize() can handle,
+     * but we don't want it to be part of Asset::isImage() because GD and Imagick can't process it.
+     * Currently PSD, BMP, TIFF, HEIC/HEIF and newer JPEG formats.
+     *
+     * @return bool
+     */
+    private function canExtractImageDimensions(Asset $asset)
+    {
+        return $asset->extensionIsOneOf(['psd', 'bmp', 'tif', 'tiff', 'heic', 'heif', 'jp2', 'jxl']);
     }
 }
