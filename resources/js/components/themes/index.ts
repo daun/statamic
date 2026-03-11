@@ -242,6 +242,7 @@ export const colors = [
     { name: 'ui-accent-bg', label: 'Accent Background', },
     { name: 'ui-accent-text', label: 'Accent Text', },
     { name: 'switch-bg', label: 'Switch Background', },
+    { name: 'input-bg', label: 'Input Background', },
     { name: 'success', label: 'Success', },
     { name: 'danger', label: 'Danger', },
     { name: 'gray-50', label: 'Gray 50', },

@@ -16,6 +16,7 @@ export type ColorVariableName =
     | 'ui-accent-bg'
     | 'ui-accent-text'
     | 'switch-bg'
+    | 'input-bg'
     | 'gray-50'
     | 'gray-100'
     | 'gray-150'

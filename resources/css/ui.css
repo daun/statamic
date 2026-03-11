@@ -30,6 +30,7 @@
     --color-ui-accent-bg: var(--theme-color-ui-accent-bg);
     --color-ui-accent-text: var(--theme-color-ui-accent-text);
     --color-switch-bg: var(--theme-color-switch-bg);
+    --color-input-bg: var(--theme-color-input-bg);
 
     /* Custom color shades for all Tailwind color families */
     --color-slate-150: oklch(0.9485 0.01 251.702);
@@ -181,4 +182,3 @@
 }
 
 @custom-variant with-contrast (&:where([data-contrast="increased"] *));
-
