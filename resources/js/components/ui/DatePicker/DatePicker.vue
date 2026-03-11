@@ -142,7 +142,7 @@ const getInputLabel = (part) => {
                 <DatePickerAnchor as-child>
                     <div
                         :class="[
-                            'flex w-full items-center bg-white uppercase dark:bg-gray-900',
+                            'flex w-full items-center bg-input-bg uppercase',
                             'border border-gray-300 dark:border-gray-700',
                             'text-gray-600 dark:text-gray-300',
                             'shadow-ui-sm not-prose h-10 rounded-lg px-2 disabled:shadow-none',

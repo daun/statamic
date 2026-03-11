@@ -109,7 +109,7 @@ const calendarEvents = computed(() => ({
             <DateRangePickerField v-slot="{ segments }" class="w-full">
                 <div
                     :class="[
-                        'flex items-center w-full bg-white dark:bg-gray-900',
+                        'flex items-center w-full bg-input-bg',
                         'border border-gray-300 dark:border-gray-700',
                         'leading-[1.375rem] text-gray-600 dark:text-gray-300',
                         'shadow-ui-sm not-prose h-10 rounded-lg py-2 px-2.5 disabled:shadow-none',

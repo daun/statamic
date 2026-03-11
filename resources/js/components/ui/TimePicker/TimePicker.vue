@@ -36,7 +36,7 @@ const setToNow = () => {
         :locale="$date.locale"
         :granularity="granularity"
         :class="[
-            'flex items-center w-full bg-white dark:bg-gray-900',
+            'flex items-center w-full bg-input-bg',
             'border border-gray-300 dark:border-gray-700',
             'leading-5 text-gray-600 dark:text-gray-300',
             'shadow-ui-sm not-prose h-10 rounded-lg py-2 px-3 disabled:shadow-none',
