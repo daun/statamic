@@ -3,7 +3,7 @@
         <div>
             <div
                 class="
-                    @container/markdown w-full block bg-white dark:bg-gray-900! rounded-lg relative
+                    @container/markdown w-full block bg-input-bg rounded-lg relative
                     border border-gray-300 with-contrast:border-gray-500 dark:border-white/15 dark:inset-shadow-2xs dark:inset-shadow-black
                     text-gray-900 dark:text-gray-300
                     appearance-none antialiased shadow-ui-sm disabled:shadow-none
@@ -76,7 +76,7 @@
                                 <div class="editor relative top-[0.5px] z-(--z-index-above) st-text-legibility" ref="codemirror" :class="{ 'focus-within:focus-outline': !fullScreenMode }">
                                     <div
                                         v-if="showFloatingToolbar && toolbarIsFloating && !isReadOnly"
-                                        class="markdown-floating-toolbar absolute z-50 flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-1 shadow-lg dark:border-white/10 dark:bg-gray-900"
+                                        class="markdown-floating-toolbar absolute z-50 flex items-center gap-1 rounded-lg border border-gray-300 bg-input-bg px-2 py-1 shadow-lg dark:border-white/10"
                                         :style="{ left: `${floatingToolbarX}px`, top: `${floatingToolbarY}px` }"
                                         @mousedown.prevent
                                     >

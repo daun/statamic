@@ -1,4 +1,4 @@
-/* CODEMIRROR 
+/* CODEMIRROR
 =================================================== */
 .CodeMirror {
     /* Set height, width, borders, and global font properties here */
@@ -17,7 +17,7 @@
 
 .CodeMirror-scrollbar-filler,
 .CodeMirror-gutter-filler {
-    background-color: white; /* The little square between H and V scrollbars */
+    background-color: var(--color-input-bg); /* The little square between H and V scrollbars */
 }
 
 /* CODEMIRROR / GUTTERS
@@ -257,7 +257,7 @@ div.CodeMirror span {
 .CodeMirror {
     position: relative;
     overflow: hidden;
-    background: white;
+    background: var(--color-input-bg);
 }
 
 .CodeMirror-scroll {
@@ -507,13 +507,13 @@ span.CodeMirror-selectedtext {
 .cm-s-material {
     &.CodeMirror {
         background: #263238;
-        @apply dark:bg-gray-900;
+        background: var(--color-input-bg);
         color: #eeffff;
     }
 
     .CodeMirror-gutters {
         background: #263238;
-        @apply dark:bg-gray-900;
+        background: var(--color-input-bg);
         color: #678695;
         border: none;
     }
