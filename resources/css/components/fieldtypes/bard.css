@@ -266,9 +266,6 @@
         & > .bard-editor {
             @apply relative mx-auto my-6 max-w-page rounded-lg bg-white px-8 shadow-ui-md dark:bg-gray-925 dark:shadow-lg;
         }
-        .bard-content {
-            @apply dark:bg-gray-925;
-        }
 
         .bard-fixed-toolbar {
             /* Don't affect nested toolbars; only the one at the very top */
@@ -326,7 +323,7 @@
     }
 
     .bard-fieldtype .bard-content {
-        @apply text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-900 rounded-lg;
+        @apply text-gray-900 dark:text-gray-300 bg-input-bg rounded-lg;
         blockquote,
         ol,
         p,
@@ -471,10 +468,10 @@
             .tableWrapper &,
             blockquote > .tableWrapper &,
             :is(ol, ul) li > .tableWrapper & {
-                @apply m-0 mb-4 w-full overflow-hidden bg-white text-sm dark:bg-gray-900 border-collapse table-fixed;
+                @apply m-0 mb-4 w-full overflow-hidden text-sm border-collapse table-fixed;
 
                 th {
-                    @apply bg-gray-50 dark:bg-gray-950/30 text-start;
+                    @apply bg-gray-500/5 dark:bg-gray-950/30 text-start;
                     p {
                         @apply font-medium dark:font-semibold;
                     }
@@ -576,13 +573,3 @@
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
