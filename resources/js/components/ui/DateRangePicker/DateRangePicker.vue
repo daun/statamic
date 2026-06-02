@@ -1,5 +1,7 @@
 <script setup>
+import { config } from '@api';
 import { computed } from 'vue';
+import { normalizeLocale } from '../../FormattingLocale.js';
 import {
     DateRangePickerCalendar,
     DateRangePickerCell,
@@ -23,7 +25,10 @@ import Card from '../Card/Card.vue';
 import Button from '../Button/Button.vue';
 import Calendar from '../Calendar/Calendar.vue';
 import Icon from '../Icon/Icon.vue';
+import Text from '../Text.vue';
+import TimezoneHoverCard from '../TimezoneHoverCard.vue';
 import { parseAbsoluteToLocal } from '@internationalized/date';
+import { getAdditionalTimezones } from '../DatePicker/util.js';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -31,11 +36,11 @@ const props = defineProps({
     /** Badge text to display. */
     badge: { type: String, default: null },
     required: { type: Boolean, default: false },
-    /** The controlled date range value. <br><br> Should be a [`DateRange` object](https://reka-ui.com/docs/guides/dates) or an object with `start` and `end` keys, where each value is an ISO 8601 datetime string with a UTC offset. */
+    /** The controlled date range value. <br><br> Should be a [`DateRange` object](https://reka-ui.com/docs/guides/dates). */
     modelValue: { type: [Object, String], default: null },
-    /** The minimum selectable date. <br><br> Should be a [`DateValue` object](https://reka-ui.com/docs/guides/dates) or an ISO 8601 datetime string with a UTC offset. */
+    /** The minimum selectable date. <br><br> Should be a [`DateValue` object](https://reka-ui.com/docs/guides/dates). */
     min: { type: [String, Object], default: null },
-    /** The maximum selectable date. <br><br> Should be a [`DateValue` object](https://reka-ui.com/docs/guides/dates) or an ISO 8601 datetime string with a UTC offset. */
+    /** The maximum selectable date. <br><br> Should be a [`DateValue` object](https://reka-ui.com/docs/guides/dates). */
     max: { type: [String, Object], default: null },
     /** The granularity of the date range picker. <br><br> Options: `day`, `hour`, `minute`, `second` */
     granularity: { type: String, default: null },
@@ -51,6 +56,7 @@ const calendarBindings = computed(() => ({
     modelValue: props.modelValue ?? [],
     min: props.min,
     max: props.max,
+    inline: props.inline,
     components: {
         Root: DateRangePickerCalendar,
         Header: DateRangePickerHeader,
@@ -67,15 +73,21 @@ const calendarBindings = computed(() => ({
     },
 }));
 
-// The placeholder defines the month to show when there's no value. Additionally,
-// by setting it to an absolute value, it ensures that the emitted event value
-// will be the appropriate format (e.g. a full date with time with timezone,
-// rather than just a day).
-const placeholder = parseAbsoluteToLocal(new Date().toISOString());
+// Initial month when there is no value. Use defaultPlaceholder (not placeholder) so
+// the range root stays uncontrolled: month navigation can update the visible month,
+// and shared calendar UI (e.g. Today) can read that state from inject context.
+// Still an absolute local ZonedDateTime so defaults match full date/time shape.
+const defaultPlaceholder = parseAbsoluteToLocal(new Date().toISOString());
 
 const calendarEvents = computed(() => ({
     'update:model-value': (event) => {
         if (props.granularity === 'day') {
+
+            // Avoid fatal error `Cannot set properties of undefined (setting 'hour')`
+            if (event.end == null) {
+              return
+            }
+
             event.start.hour = 0;
             event.start.minute = 0;
             event.start.second = 0;
@@ -90,12 +102,29 @@ const calendarEvents = computed(() => ({
         emit('update:modelValue', event)
     },
 }));
+
+const timeZoneName = computed(() => props.modelValue?.start?.timeZone ?? null);
+
+const timeZoneLabel = computed(() => {
+    const tz = timeZoneName.value;
+    if (!tz) return null;
+
+    const parts = new Intl.DateTimeFormat(normalizeLocale(config.get('translationLocale')), { timeZone: tz, timeZoneName: 'short' }).formatToParts(props.modelValue.start.toDate());
+    return parts.find((p) => p.type === 'timeZoneName')?.value ?? tz;
+});
+
+const additionalTimezones = computed(() => getAdditionalTimezones(timeZoneName.value));
+
+const hoverCardDate = computed(() => {
+    if (!props.modelValue?.start || !props.modelValue?.end) return null;
+    return { start: props.modelValue.start.toDate(), end: props.modelValue.end.toDate() };
+});
 </script>
 
 <template>
     <div class="group/input relative block w-full" data-ui-input>
         <DateRangePickerRoot
-            :modelValue="modelValue"
+            :modelValue="modelValue ?? { start: undefined, end: undefined }"
             :granularity="granularity"
             :locale="$date.locale"
             :disabled="disabled || readOnly"
@@ -103,15 +132,15 @@ const calendarEvents = computed(() => ({
             v-bind="$attrs"
             prevent-deselect
             hide-time-zone
-            :placeholder="placeholder"
+            :default-placeholder="defaultPlaceholder"
             close-on-select
         >
             <DateRangePickerField v-slot="{ segments }" class="w-full">
                 <div
                     :class="[
-                        'flex items-center w-full bg-white dark:bg-gray-900',
+                        'flex items-center w-full overflow-x-auto overflow-y-hidden bg-white dark:bg-gray-900',
                         'border border-gray-300 dark:border-gray-700',
-                        'leading-[1.375rem] text-gray-600 dark:text-gray-300',
+                        'leading-[1.375rem] text-gray-600 dark:text-gray-300 @max-xs:text-xs',
                         'shadow-ui-sm not-prose h-10 rounded-lg py-2 px-2.5 disabled:shadow-none',
                         'data-invalid:border-red-500',
                         'disabled:shadow-none disabled:opacity-50',
@@ -155,6 +184,14 @@ const calendarEvents = computed(() => ({
                         </DateRangePickerInput>
                     </template>
                     <div class="flex-1" />
+                    <TimezoneHoverCard
+                        v-if="timeZoneLabel && hoverCardDate"
+                        :date="hoverCardDate"
+                        :additional-timezones="additionalTimezones"
+                        side="top"
+                    >
+                        <Text class="text-gray-600! dark:text-gray-400! ms-2" size="xs" :text="timeZoneLabel" />
+                    </TimezoneHoverCard>
                     <Button v-if="!readOnly" @click="emit('update:modelValue', null)" variant="subtle" size="sm" icon="x" class="-me-2" :disabled="disabled" />
                 </div>
             </DateRangePickerField>

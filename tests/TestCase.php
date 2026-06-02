@@ -46,6 +46,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         }
 
         $this->addGqlMacros();
+        $this->addRateLimitMacros();
     }
 
     public function tearDown(): void
@@ -199,6 +200,15 @@ YAML);
         $this->assertEquals(count($items), $matches, 'Failed asserting that every item is an instance of '.$class);
     }
 
+    protected function normalizeYaml(string $yaml): string
+    {
+        // Normalize formatting changes introduced in symfony/yaml 8.1
+        $yaml = str_replace('{  }', '{}', $yaml);
+        $yaml = preg_replace('/^( *)-\n\1  (\S)/m', '$1- $2', $yaml);
+
+        return $yaml;
+    }
+
     protected function assertContainsHtml($string)
     {
         preg_match('/<[^<]+>/', $string, $matches);
@@ -276,6 +286,21 @@ YAML);
                     "Header [{$headerName}] was found, but value [{$actual}] does not match [{$value}]."
                 );
             }
+
+            return $this;
+        });
+    }
+
+    private function addRateLimitMacros()
+    {
+        TestResponse::macro('assertRateLimited', function () {
+            Assert::assertSame(429, $this->getStatusCode(), 'Expected request to be rate limited, but it was not.');
+
+            return $this;
+        });
+
+        TestResponse::macro('assertNotRateLimited', function () {
+            Assert::assertNotSame(429, $this->getStatusCode(), 'Expected request not to be rate limited, but it was.');
 
             return $this;
         });
