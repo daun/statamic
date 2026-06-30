@@ -104,6 +104,9 @@
         @apply text-gray-900 dark:text-gray-300;
     }
 
+    &.CodeMirror pre.CodeMirror-placeholder {
+        @apply text-gray-500 dark:text-gray-400/85;
+    }
     .CodeMirror-gutters {
         @apply border-r-gray-300;
     }
