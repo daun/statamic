@@ -112,7 +112,9 @@
                             ref="assets"
                             style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));"
                         >
-                            <asset-tile
+                            <component
+                                :is="assetTileComponent"
+                                class="asset-tile"
                                 v-for="asset in assets"
                                 :key="asset.id"
                                 :asset="asset"
@@ -124,8 +126,7 @@
                                 @updated="assetUpdated"
                                 @removed="assetRemoved"
                                 @id-changed="idChanged"
-                            >
-                            </asset-tile>
+                            />
                         </div>
                     </sortable-list>
 
@@ -152,7 +153,7 @@
                             >
                                 <tbody ref="assets">
                                     <component
-                                        is="assetRow"
+                                        :is="assetRowComponent"
                                         class="asset-row"
                                         v-for="asset in assets"
                                         :key="asset.id"
@@ -219,6 +220,11 @@ export default {
     },
 
     mixins: [Fieldtype],
+
+    props: {
+        assetTileComponent: { type: [String, Object], default: 'asset-tile' },
+        assetRowComponent: { type: [String, Object], default: 'asset-row' },
+    },
 
     setup() {
         const checkerboard = useCheckerboard();
