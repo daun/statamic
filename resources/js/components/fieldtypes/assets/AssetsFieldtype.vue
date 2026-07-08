@@ -133,7 +133,7 @@
                     <div
                         class="relative overflow-hidden rounded-xl border border-gray-300 dark:border-gray-700"
                         :class="{ 'not-[.link-fieldtype_&]:border-t-0! not-[.link-fieldtype_&]:rounded-t-none': !isReadOnly && (showPicker || uploads.length), 'border-dashed': isReadOnly }"
-                        v-if="displayMode === 'list'"
+                        v-else-if="displayMode === 'list'"
                     >
                         <table class="table-fixed w-full">
                             <thead class="sr-only">
@@ -170,6 +170,8 @@
                             </sortable-list>
                         </table>
                     </div>
+
+                    <slot v-else :name="displayMode" v-bind="{ config, assets, assetUpdated, assetRemoved, idChanged }" />
                 </template>
             </div>
         </uploader>
