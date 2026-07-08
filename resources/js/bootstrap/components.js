@@ -1,4 +1,7 @@
 import Browser from '../components/assets/Browser/Browser.vue';
+import Editor from '../components/assets/Editor/Editor.vue';
+import AssetTile from '../components/fieldtypes/assets/AssetTile.vue';
+import AssetRow from '../components/fieldtypes/assets/AssetRow.vue';
 import UpdatesBadge from '../components/UpdatesBadge.vue';
 import FullscreenHeader from '../components/publish/FullscreenHeader.vue';
 import FieldMeta from '../components/publish/FieldMeta.vue';
@@ -40,6 +43,9 @@ import DynamicHtmlRenderer from '@/components/DynamicHtmlRenderer.vue';
 export default function registerGlobalComponents(app) {
     // Core
     app.component('asset-browser', Browser);
+    app.component('asset-editor', Editor);
+    app.component('asset-tile', AssetTile);
+    app.component('asset-row', AssetRow);
     app.component('updates-badge', UpdatesBadge);
     app.component('inertia-link', Link);
     app.component('dynamic-html-renderer', DynamicHtmlRenderer);
