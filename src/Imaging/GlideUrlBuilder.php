@@ -60,7 +60,7 @@ class GlideUrlBuilder extends ImageUrlBuilder
         $params = $this->withEncodedWatermark($params);
 
         return URL::makeRelative(
-            URL::prependSiteUrl($builder->getUrl($path, $params))
+            $builder->getUrl($path, $params)
         );
     }
 }
