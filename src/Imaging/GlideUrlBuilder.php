@@ -4,6 +4,7 @@ namespace Statamic\Imaging;
 
 use Exception;
 use League\Glide\Urls\UrlBuilderFactory;
+use Statamic\Facades\Site;
 use Statamic\Facades\URL;
 use Statamic\Support\Str;
 
@@ -60,7 +61,7 @@ class GlideUrlBuilder extends ImageUrlBuilder
         $params = $this->withEncodedWatermark($params);
 
         return URL::makeRelative(
-            $builder->getUrl($path, $params)
+            URL::prependSiteUrl($builder->getUrl($path, $params), Site::default()->handle())
         );
     }
 }
