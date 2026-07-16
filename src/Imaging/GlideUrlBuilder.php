@@ -5,6 +5,7 @@ namespace Statamic\Imaging;
 use Exception;
 use League\Glide\Urls\UrlBuilderFactory;
 use Statamic\Contracts\Assets\Asset;
+use Statamic\Facades\Site;
 use Statamic\Facades\URL;
 use Statamic\Support\Str;
 
@@ -65,7 +66,7 @@ class GlideUrlBuilder extends ImageUrlBuilder
         }
 
         return URL::makeRelative(
-            $builder->getUrl($path, $params)
+            URL::prependSiteUrl($builder->getUrl($path, $params), Site::default()->handle())
         );
     }
 }
