@@ -22,16 +22,16 @@ trait GetsItemsContainingData
     {
         $collections = [
             LazyCollection::make(function () {
-                yield from Entry::query()->lazy();
+                yield from $this->applyRawContentFilter(Entry::query())->lazy();
             }),
             LazyCollection::make(function () {
-                yield from Term::query()->lazy();
+                yield from $this->applyRawContentFilter(Term::query())->lazy();
             }),
             LazyCollection::make(function () {
                 yield from GlobalSet::all()->flatMap(fn ($set) => $set->localizations()->values());
             }),
             LazyCollection::make(function () {
-                yield from User::query()->lazy();
+                yield from $this->applyRawContentFilter(User::query())->lazy();
             }),
             LazyCollection::make(function () {
                 yield from ($this->runHooks('additional') ?? LazyCollection::make());
@@ -43,5 +43,20 @@ trait GetsItemsContainingData
                 yield from $collection;
             }
         });
+    }
+
+    /**
+     * Narrow a query to items whose raw stored data could contain the value being replaced.
+     *
+     * Overrides may over-match (every item is re-checked before anything is updated)
+     * but must never exclude an item whose stored data contains the value verbatim.
+     * The default is a no-op, which is always correct.
+     *
+     * @param  \Statamic\Contracts\Query\Builder  $query
+     * @return \Statamic\Contracts\Query\Builder
+     */
+    protected function applyRawContentFilter($query)
+    {
+        return $query;
     }
 }
