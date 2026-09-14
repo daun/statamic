@@ -4,6 +4,7 @@ namespace Statamic\Fieldtypes;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Str;
 use Statamic\Contracts\Data\Localization;
 use Statamic\Contracts\Entries\Entry as EntryContract;
 use Statamic\CP\Column;
@@ -42,6 +43,7 @@ class Entries extends Relationship
     protected $canCreate = true;
     protected $canSearch = true;
     protected $statusIcons = true;
+    protected $taggable = true;
     protected $formComponent = 'entry-publish-form';
     protected $activeFilterBadges;
 
@@ -458,6 +460,76 @@ class Entries extends Relationship
         return $this->config('max_items') === 1 ? $items->first() : $items;
     }
 
+    public function process($data)
+    {
+        $data = parent::process($data);
+
+        if ($this->usingSingleCollection()) {
+            $collection = $this->getConfiguredCollections()[0];
+
+            $data = collect($data)
+                // Ids are uuids by default, so that check alone resolves most values without a
+                // lookup. The eloquent driver can use integer ids, hence the existence check.
+                ->map(fn ($id) => Str::isUuid($id) || $this->findEntry($id)
+                    ? $id
+                    : $this->createEntryFromString($id, $collection))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($this->field->get('max_items') === 1) {
+                return $data[0] ?? null;
+            }
+        }
+
+        return $data;
+    }
+
+    protected function createEntryFromString($string, $collection)
+    {
+        $collection = Collection::findByHandle($collection);
+        $site = $this->siteForNewEntry($collection);
+
+        $slug = Str::slug($string, '-', $site->lang());
+
+        $entry = Entry::query()
+            ->where('collection', $collection->handle())
+            ->where('site', $site->handle())
+            ->where('slug', $slug)
+            ->first();
+
+        if (! $entry) {
+            if (User::current()->cant('create', [EntryContract::class, $collection, $site])) {
+                return null;
+            }
+
+            $entry = Entry::make()
+                ->slug($slug)
+                ->locale($site)
+                ->blueprint($collection->entryBlueprint())
+                ->collection($collection)
+                ->set('title', $string);
+
+            $entry->save();
+        }
+
+        return $entry->id();
+    }
+
+    private function siteForNewEntry($collection)
+    {
+        // Mirrors queryBuilder()'s resolution, so a created entry lands in the site the
+        // field augments against. Otherwise it would be filtered out when localizing.
+        $parent = $this->field->parent();
+
+        $handle = $parent instanceof Localization
+            ? $parent->locale()
+            : Site::current()->handle();
+
+        return Site::get($collection->sites()->contains($handle) ? $handle : $collection->sites()->first());
+    }
+
     public function getSelectionFilters()
     {
         return Scope::filters('entries-fieldtype', $this->getSelectionFilterContext());
@@ -476,6 +548,11 @@ class Entries extends Relationship
         return empty($collections = $this->config('collections'))
             ? Collection::handles()->all()
             : Arr::wrap($collections);
+    }
+
+    protected function usingSingleCollection()
+    {
+        return count($this->getConfiguredCollections()) === 1;
     }
 
     public function toGqlType()
