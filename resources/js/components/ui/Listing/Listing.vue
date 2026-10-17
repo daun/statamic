@@ -377,14 +377,22 @@ function pushState() {
         ),
     );
 
-    window.history.pushState({ parameters: parameters.value }, '', '?' + searchParams.toString());
+    window.history.pushState({ ...currentHistoryState(), parameters: parameters.value }, '', '?' + searchParams.toString());
+}
+
+// Other state stored by the page (e.g. the asset browser's folder path) is preserved. Inertia's
+// own page state is dropped so that its popstate handler doesn't swap out the whole page.
+function currentHistoryState() {
+    const { page, ...state } = window.history.state || {};
+    return state;
 }
 
 function popState(event) {
-    if (!props.pushQuery || !event.state) return;
+    if (!props.pushQuery || !event.state?.parameters) return;
 
     popping = true;
-    setParameters(event.state.parameters);
+    // Empty values are omitted from the stored parameters, so they need to be reset explicitly.
+    setParameters({ search: null, filters: null, ...event.state.parameters });
     nextTick(() => (popping = false));
 }
 
@@ -695,7 +703,7 @@ watch(loading, (loading) => Statamic.$progress.loading(id, loading));
 
 onMounted(() => {
     if (props.pushQuery) {
-        window.history.replaceState({ parameters: parameters.value }, '');
+        window.history.replaceState({ ...currentHistoryState(), parameters: parameters.value }, '');
         window.addEventListener('popstate', popState);
     }
 });

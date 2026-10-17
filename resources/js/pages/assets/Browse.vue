@@ -32,6 +32,10 @@ export default {
         this.bindBrowserNavigation();
     },
 
+    beforeUnmount() {
+        window.removeEventListener('popstate', this.popState);
+    },
+
     methods: {
         /**
          * Bind browser navigation features
@@ -40,11 +44,18 @@ export default {
          * navigation back and forth through folders using browser buttons.
          */
         bindBrowserNavigation() {
-            window.history.replaceState({ container: toRaw(this.container), path: this.path }, '');
+            window.history.replaceState({ ...this.currentHistoryState(), container: toRaw(this.container), path: this.path }, '');
 
-            window.onpopstate = (e) => {
-                this.path = e.state.path;
-            };
+            window.addEventListener('popstate', this.popState);
+        },
+
+        popState(e) {
+            if (e.state?.path !== undefined) this.path = e.state.path;
+        },
+
+        currentHistoryState() {
+            const { page, ...state } = window.history.state || {};
+            return state;
         },
 
         editAsset(asset) {
@@ -82,11 +93,12 @@ export default {
 
             window.history.pushState(
                 {
+                    ...this.currentHistoryState(),
                     container: toRaw(this.container),
                     path: this.path,
                 },
                 '',
-                url,
+                url + window.location.search,
             );
         },
 
@@ -115,6 +127,7 @@ export default {
             :selected-assets="selectedAssets"
             :initial-columns="columns"
             :filters="filters"
+            push-query
             @navigated="navigate"
             @selections-updated="updateSelections"
             @edit-asset="editAsset"

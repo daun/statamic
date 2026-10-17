@@ -30,6 +30,7 @@
                     :max-selections="maxFiles"
                     :preferences-prefix="preferencesPrefix"
                     :additional-parameters="additionalParameters"
+                    :push-query="pushQuery"
                     v-model:search-query="searchQuery"
                     @request-completed="listingRequestCompleted"
                     @update:selections="$emit('selections-updated', $event)"
@@ -239,6 +240,19 @@ import Breadcrumbs from './Breadcrumbs.vue';
 import useCheckerboard from '@/composables/checkerboard.js';
 import { router } from '@inertiajs/vue3';
 
+function initialQueryState() {
+    const params = new URLSearchParams(window.location.search);
+    let filters = {};
+
+    try {
+        filters = params.get('filters') ? JSON.parse(utf8atob(params.get('filters'))) : {};
+    } catch (e) {
+        //
+    }
+
+    return { search: params.get('search') ?? '', filters };
+}
+
 export default {
     mixins: [HasPreferences],
 
@@ -285,6 +299,7 @@ export default {
         container: Object,
         initialEditingAssetId: String,
         maxFiles: Number,
+        pushQuery: Boolean, // Whether to reflect the search, filters, etc. in the URL.
         queryScopes: Array,
         restrictFolderNavigation: Boolean, // Whether to restrict to a single folder and prevent navigation.
         selectedAssets: Array,
@@ -311,6 +326,8 @@ export default {
     },
 
     data() {
+        const queryState = this.pushQuery ? initialQueryState() : {};
+
         return {
             columns: this.initialColumns,
             visibleColumns: this.initialColumns.filter(column => column.visible),
@@ -321,8 +338,8 @@ export default {
             path: this.selectedPath,
             folders: [],
             folder: {},
-            searchQuery: '',
-            activeFilters: {},
+            searchQuery: queryState.search ?? '',
+            activeFilters: queryState.filters ?? {},
             editedAssetId: this.initialEditingAssetId,
             creatingFolder: false,
             creatingFolderError: false,
