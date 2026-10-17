@@ -74,3 +74,37 @@ test('pushing query parameters preserves other history state but drops inertia p
 
     wrapper.unmount();
 });
+
+test('popping state resets the search and filters when they are absent from the stored parameters', async () => {
+    window.history.replaceState(null, '', '/');
+    const wrapper = mountListing({ pushQuery: true, columns: ['title'], filters: [{ handle: 'status', auto_apply: [] }] });
+    const { listing } = wrapper.findComponent(Probe).vm;
+
+    listing.setSearchQuery('cats');
+    listing.setFilter('status', { value: 'published' });
+    await wrapper.vm.$nextTick();
+
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { parameters: { page: 1 } } }));
+    await wrapper.vm.$nextTick();
+
+    expect(listing.searchQuery.value).toBeNull();
+    expect(listing.activeFilters.value).toEqual({});
+
+    wrapper.unmount();
+});
+
+test('popping state without listing parameters is ignored', async () => {
+    window.history.replaceState(null, '', '/');
+    const wrapper = mountListing({ pushQuery: true, columns: ['title'] });
+    const { listing } = wrapper.findComponent(Probe).vm;
+
+    listing.setSearchQuery('cats');
+    await wrapper.vm.$nextTick();
+
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { path: 'photos' } }));
+    await wrapper.vm.$nextTick();
+
+    expect(listing.searchQuery.value).toBe('cats');
+
+    wrapper.unmount();
+});
