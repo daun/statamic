@@ -58,3 +58,19 @@ test('counts each nested field badge individually', () => {
 
     expect(listing.activeFilterBadgeCount.value).toBe(2);
 });
+
+test('pushing query parameters preserves other history state but drops inertia page state', async () => {
+    window.history.replaceState({ page: { component: 'Foo' }, path: 'photos' }, '', '/');
+    const wrapper = mountListing({ pushQuery: true, columns: ['title'] });
+    const { listing } = wrapper.findComponent(Probe).vm;
+
+    listing.setSearchQuery('cats');
+    await wrapper.vm.$nextTick();
+
+    expect(window.location.search).toContain('search=cats');
+    expect(window.history.state.path).toBe('photos');
+    expect(window.history.state.page).toBeUndefined();
+    expect(window.history.state.parameters.search).toBe('cats');
+
+    wrapper.unmount();
+});
