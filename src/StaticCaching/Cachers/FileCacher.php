@@ -7,6 +7,9 @@ use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\LazyCollection;
+use Statamic\Events\StaticCacheFileDeleting;
+use Statamic\Events\StaticCacheFileWriting;
+use Statamic\Events\StaticCacheFileWritten;
 use Statamic\Events\UrlInvalidated;
 use Statamic\Facades\File;
 use Statamic\Facades\Path;
@@ -78,11 +81,17 @@ class FileCacher extends AbstractCacher
 
         $path = $this->getFilePath($url);
 
+        $site = $this->config('locale');
+
+        StaticCacheFileWriting::dispatch($path, $url, $site);
+
         if (! $this->writer->write($path, $content, $this->config('lock_hold_length'))) {
             return;
         }
 
         $this->cacheUrl($this->makeHash($url), ...$this->getPathAndDomain($url));
+
+        StaticCacheFileWritten::dispatch($path, $url, $site);
     }
 
     public function preventLoggingRewriteWarning()
@@ -136,22 +145,39 @@ class FileCacher extends AbstractCacher
     public function invalidateUrl($url, $domain = null)
     {
         $site = optional(Site::findByUrl($domain.$url))->handle();
+        $eventSite = $site ?: $this->config('locale');
+        $eventDomain = $domain ?: $this->getBaseUrl();
 
         $this
             ->getUrls($domain)
             ->filter(fn ($value) => $value === $url || str_starts_with($value, $url.'?'))
-            ->each(function ($value, $key) use ($site, $domain) {
-                $this->writer->delete($this->getFilePath($domain.$value, $site));
+            ->each(function ($value, $key) use ($site, $domain, $eventSite, $eventDomain) {
+                $path = $this->getFilePath($domain.$value, $site);
+                StaticCacheFileDeleting::dispatch($path, $eventDomain.$value, $eventSite);
+                $this->writer->delete($path);
                 $this->forgetUrl($key, $domain);
             });
 
         $this->getFiles($site)
             ->filter(fn ($file) => str_starts_with($file, $url.'_'))
-            ->each(function ($file, $path) {
+            ->each(function ($file, $path) use ($url, $eventSite, $eventDomain) {
+                $fileUrl = $this->getUrlFromFile($file, $url);
+                StaticCacheFileDeleting::dispatch($path, $fileUrl ? $eventDomain.$fileUrl : null, $eventSite);
                 $this->writer->delete($path);
             });
 
         UrlInvalidated::dispatch($url, $domain);
+    }
+
+    private function getUrlFromFile(string $file, string $url): ?string
+    {
+        if ($this->isLongQueryStringPath($file)) {
+            return null;
+        }
+
+        $query = Str::beforeLast(Str::after($file, $url.'_'), '.html');
+
+        return $query === '' ? $url : $url.'?'.$query;
     }
 
     /**
