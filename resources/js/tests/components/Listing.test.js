@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
 import * as Globals from '@/bootstrap/globals';
 import Listing, { injectListingContext } from '@/components/ui/Listing/Listing.vue';
@@ -59,8 +59,8 @@ test('counts each nested field badge individually', () => {
     expect(listing.activeFilterBadgeCount.value).toBe(2);
 });
 
-test('pushing query parameters preserves other history state but drops inertia page state', async () => {
-    window.history.replaceState({ page: { component: 'Foo' }, path: 'photos' }, '', '/');
+test('pushing query parameters stores them in the history entry', async () => {
+    window.history.replaceState(null, '', '/');
     const wrapper = mountListing({ pushQuery: true, columns: ['title'] });
     const { listing } = wrapper.findComponent(Probe).vm;
 
@@ -68,23 +68,22 @@ test('pushing query parameters preserves other history state but drops inertia p
     await wrapper.vm.$nextTick();
 
     expect(window.location.search).toContain('search=cats');
-    expect(window.history.state.path).toBe('photos');
-    expect(window.history.state.page).toBeUndefined();
-    expect(window.history.state.parameters.search).toBe('cats');
+    expect(window.history.state.statamic.values.parameters.search).toBe('cats');
 
     wrapper.unmount();
 });
 
-test('popping state resets the search and filters when they are absent from the stored parameters', async () => {
+test('popping an entry resets the search and filters when they are absent from the stored parameters', async () => {
     window.history.replaceState(null, '', '/');
     const wrapper = mountListing({ pushQuery: true, columns: ['title'], filters: [{ handle: 'status', auto_apply: [] }] });
     const { listing } = wrapper.findComponent(Probe).vm;
+    const { session } = window.history.state.statamic;
 
     listing.setSearchQuery('cats');
     listing.setFilter('status', { value: 'published' });
     await wrapper.vm.$nextTick();
 
-    window.dispatchEvent(new PopStateEvent('popstate', { state: { parameters: { page: 1 } } }));
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { statamic: { session, values: { parameters: { page: 1 } } } } }));
     await wrapper.vm.$nextTick();
 
     expect(listing.searchQuery.value).toBeNull();
@@ -93,18 +92,19 @@ test('popping state resets the search and filters when they are absent from the 
     wrapper.unmount();
 });
 
-test('popping state without listing parameters is ignored', async () => {
+test('popping an entry does not push another one', async () => {
     window.history.replaceState(null, '', '/');
     const wrapper = mountListing({ pushQuery: true, columns: ['title'] });
     const { listing } = wrapper.findComponent(Probe).vm;
+    const { session } = window.history.state.statamic;
+    const pushSpy = vi.spyOn(window.history, 'pushState');
 
-    listing.setSearchQuery('cats');
+    window.dispatchEvent(new PopStateEvent('popstate', { state: { statamic: { session, values: { parameters: { search: 'dogs' } } } } }));
     await wrapper.vm.$nextTick();
 
-    window.dispatchEvent(new PopStateEvent('popstate', { state: { path: 'photos' } }));
-    await wrapper.vm.$nextTick();
+    expect(listing.searchQuery.value).toBe('dogs');
+    expect(pushSpy).not.toHaveBeenCalled();
 
-    expect(listing.searchQuery.value).toBe('cats');
-
+    pushSpy.mockRestore();
     wrapper.unmount();
 });
