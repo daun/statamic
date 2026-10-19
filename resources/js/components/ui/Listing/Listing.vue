@@ -5,8 +5,9 @@ export const [injectListingContext, provideListingContext] = createContext('List
 </script>
 
 <script setup>
-import { ref, toRef, computed, watch, nextTick, onMounted, onBeforeUnmount, useSlots } from 'vue';
+import { ref, toRef, computed, watch, onMounted, onBeforeUnmount, useSlots } from 'vue';
 import useSkeletonDelay from '@/composables/skeleton-delay.js';
+import useHistoryState from '@/composables/history-state.js';
 import {
     Icon,
     Panel,
@@ -173,7 +174,6 @@ const currentPage = ref(1);
 const perPage = ref(initializePerPage());
 const initializing = ref(true);
 const loading = ref(true);
-let popping = false;
 let source = null;
 const searchQuery = ref(null);
 const columns = ref(initializeColumns());
@@ -366,8 +366,13 @@ function refresh() {
     request();
 }
 
+// Empty values are omitted from the stored parameters, so they need to be reset explicitly.
+const historyState = props.pushQuery
+    ? useHistoryState('parameters', (parameters) => setParameters({ search: null, filters: null, ...parameters }))
+    : null;
+
 function pushState() {
-    if (!props.pushQuery || popping) return;
+    if (!historyState) return;
 
     // This ensures no additionalParameters are added to the URL
     const keys = Object.keys(rawParameters.value);
@@ -377,23 +382,7 @@ function pushState() {
         ),
     );
 
-    window.history.pushState({ ...currentHistoryState(), parameters: parameters.value }, '', '?' + searchParams.toString());
-}
-
-// Other state stored by the page (e.g. the asset browser's folder path) is preserved. Inertia's
-// own page state is dropped so that its popstate handler doesn't swap out the whole page.
-function currentHistoryState() {
-    const { page, ...state } = window.history.state || {};
-    return state;
-}
-
-function popState(event) {
-    if (!props.pushQuery || !event.state?.parameters) return;
-
-    popping = true;
-    // Empty values are omitted from the stored parameters, so they need to be reset explicitly.
-    setParameters({ search: null, filters: null, ...event.state.parameters });
-    nextTick(() => (popping = false));
+    historyState.push(parameters.value, '?' + searchParams.toString());
 }
 
 function autoApplyState() {
@@ -401,9 +390,7 @@ function autoApplyState() {
 
     const searchParams = new URLSearchParams(window.location.search);
     const parameters = Object.fromEntries(searchParams.entries());
-    popping = true;
-    setParameters(parameters);
-    nextTick(() => (popping = false));
+    historyState.silently(() => setParameters(parameters));
 }
 
 const visibleColumns = computed(() => {
@@ -701,17 +688,9 @@ watch(() => props.url, () => request());
 
 watch(loading, (loading) => Statamic.$progress.loading(id, loading));
 
-onMounted(() => {
-    if (props.pushQuery) {
-        window.history.replaceState({ ...currentHistoryState(), parameters: parameters.value }, '');
-        window.addEventListener('popstate', popState);
-    }
-});
+onMounted(() => historyState?.replace(parameters.value));
 
-onBeforeUnmount(() => {
-    Statamic.$progress.complete(id);
-    if (props.pushQuery) window.removeEventListener('popstate', popState);
-});
+onBeforeUnmount(() => Statamic.$progress.complete(id));
 
 autoApplyFilters();
 

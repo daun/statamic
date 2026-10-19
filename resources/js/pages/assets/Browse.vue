@@ -1,115 +1,68 @@
-<script>
+<script setup>
 import Head from '@/pages/layout/Head.vue';
 import { DocsCallout } from '@ui';
-import { toRaw } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import useHistoryState from '@/composables/history-state.js';
 
-export default {
-    components: {
-        Head,
-        DocsCallout,
-    },
+const props = defineProps(['container', 'folder', 'columns', 'filters', 'canCreateContainers', 'createContainerUrl', 'editing']);
 
-    props: ['container', 'folder', 'columns', 'filters', 'canCreateContainers', 'createContainerUrl', 'editing'],
+const browser = ref(null);
+const path = ref(props.folder);
+const selectedAssets = ref([]);
 
-    data() {
-        return {
-            path: this.folder,
-            selectedAssets: [],
-        };
-    },
+const headTitle = computed(() => {
+    const title = __(props.container.title);
+    const section = __('Assets');
 
-    computed: {
-        headTitle() {
-            const title = __(this.container.title);
-            const section = __('Assets');
+    // Avoid duplicating when the container is named "Assets".
+    return title === section ? section : [title, section];
+});
 
-            // Avoid duplicating when the container is named "Assets".
-            return title === section ? section : [title, section];
-        },
-    },
+// The folder and the asset being edited are stored in the browser history,
+// so the back and forward buttons move between folders and the asset editor.
+const historyState = useHistoryState('assetBrowser', ({ folder, editing }) => {
+    if (folder !== browser.value.path) path.value = folder;
+    browser.value.edit(editing);
+});
 
-    mounted() {
-        this.bindBrowserNavigation();
-    },
+onMounted(() => historyState.replace(currentState()));
 
-    beforeUnmount() {
-        window.removeEventListener('popstate', this.popState);
-    },
+function currentState() {
+    return { folder: browser.value.path, editing: browser.value.editedAssetId ?? null };
+}
 
-    methods: {
-        /**
-         * Bind browser navigation features
-         *
-         * This will initialize the state for using the history API to allow
-         * navigation back and forth through folders using browser buttons.
-         */
-        bindBrowserNavigation() {
-            window.history.replaceState({ ...this.currentHistoryState(), container: toRaw(this.container), path: this.path }, '');
+function editAsset(asset) {
+    event.preventDefault();
+    browser.value.edit(asset.id);
+}
 
-            window.addEventListener('popstate', this.popState);
-        },
+/**
+ * When a user has navigated to another folder, or opened or closed the asset editor.
+ */
+function navigate(newPath) {
+    const previousPath = path.value;
 
-        popState(e) {
-            if (e.state?.path !== undefined) this.path = e.state.path;
-        },
+    path.value = newPath;
 
-        currentHistoryState() {
-            const { page, ...state } = window.history.state || {};
-            return state;
-        },
+    let url = cp_url('assets/browse/' + props.container.id);
+    if (newPath !== '/') url += '/' + newPath;
+    historyState.push(currentState(), url + window.location.search);
 
-        editAsset(asset) {
-            event.preventDefault();
-            this.$refs.browser.edit(asset.id);
-        },
+    // Clear out any selections. It would be confusing to navigate to a different
+    // folder, perform an action, and discover you performed it on an asset that
+    // was still selected, but no longer visible. We only want to do this when
+    // navigating to/from folders, not when navigating between assets.
+    if (!newPath.includes('/edit') && !previousPath.includes('/edit')) {
+        selectedAssets.value = [];
+    }
+}
 
-        /**
-         * When a user has navigated to another folder.
-         */
-        navigate(path) {
-            let previousPath = this.path;
-
-            this.path = path;
-            this.pushState();
-
-            // Clear out any selections. It would be confusing to navigate to a different
-            // folder, perform an action, and discover you performed it on an asset that
-            // was still selected, but no longer visible. We only want to do this when
-            // navigating to/from folders, not when navigating between assets.
-            if (! path.includes('/edit') && ! previousPath.includes('/edit')) {
-                this.selectedAssets = [];
-            }
-        },
-
-        /**
-         * Push a new state onto the browser's history
-         */
-        pushState() {
-            let url = cp_url('assets/browse/' + this.container.id);
-
-            if (this.path !== '/') {
-                url += '/' + this.path;
-            }
-
-            window.history.pushState(
-                {
-                    ...this.currentHistoryState(),
-                    container: toRaw(this.container),
-                    path: this.path,
-                },
-                '',
-                url + window.location.search,
-            );
-        },
-
-        /**
-         * When selections are changed, we need them reflected here.
-         */
-        updateSelections(selections) {
-            this.selectedAssets = selections;
-        },
-    },
-};
+/**
+ * When selections are changed, we need them reflected here.
+ */
+function updateSelections(selections) {
+    selectedAssets.value = selections;
+}
 </script>
 
 <template>
